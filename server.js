@@ -16,7 +16,11 @@ connectDB();
 
 const server = http.createServer(app);
 
-app.use(cors({ origin: '*', credentials: true }));
+app.use(cors({
+  origin: (origin, cb) => cb(null, origin || '*'),
+  credentials: true
+}));
+
 
 app.use(express.json());
 
