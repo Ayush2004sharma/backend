@@ -14,7 +14,11 @@ connectDB();
 
 const server = http.createServer(app);
 
-const allowedOrigins = ['http://localhost:3000', 'https://doctor-appointment-frontend-five.vercel.app/'];
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://doctor-appointment-frontend-five.vercel.app'
+];
+
 
 app.use(
   cors({
