@@ -14,16 +14,21 @@ connectDB();
 
 const server = http.createServer(app);
 
-// CORS config
-const allowedOrigins = [
-  process.env.FRONTEND_URL || 'http://localhost:3000'
-];
+const allowedOrigins = ['http://localhost:3000', 'https://your-deployed-site.com'];
+
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, origin);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   })
 );
+
 
 app.use(express.json());
 
