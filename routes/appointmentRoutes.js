@@ -1,19 +1,33 @@
+// routes/appointmentRoutes.js
 import express from 'express';
+import { authenticateJWT } from '../middleware/authenticateJWT.js';
 import {
-  createAppointment,
+  getAvailableSlots,
+  bookAppointment,
+  cancelAppointment,
   getUserAppointments,
   getDoctorAppointments,
-  cancelAppointment,
   deleteAppointment
 } from '../controllers/appointmentController.js';
-import { authenticateJWT } from '../middleware/authenticateJWT.js';
 
 const router = express.Router();
 
-router.post('/:doctorId', authenticateJWT, createAppointment);
+// Get available slots for a doctor
+router.get('/:doctorId/slots', authenticateJWT, getAvailableSlots);
 
-router.get('/user', authenticateJWT, getUserAppointments);
+// Book an appointment
+router.post('/:doctorId', authenticateJWT, bookAppointment);
+
+// Get appointments for logged-in user
+router.get('/user/:userId', authenticateJWT, getUserAppointments);
+
+// Get appointments for logged-in doctor
 router.get('/doctor', authenticateJWT, getDoctorAppointments);
+
+// Cancel an appointment
 router.patch('/:id/cancel', authenticateJWT, cancelAppointment);
-router.delete('/:id/delete', authenticateJWT,deleteAppointment)
+
+// Delete an appointment
+router.delete('/:id/delete', authenticateJWT, deleteAppointment);
+
 export default router;

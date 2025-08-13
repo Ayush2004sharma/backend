@@ -143,54 +143,59 @@ export const getAllDoctors = async (req, res) => {
   }
 }
 
+// Create or update a doctor's weekly schedule
+export const upsertWeeklySchedule = async (req, res) => {
+  const { doctorId, schedule } = req.body;
 
+  if (!doctorId || !schedule) {
+    return res.status(400).json({ message: 'doctorId and schedule are required' });
+  }
 
-export const setAvailability = async (req, res) => {
   try {
-    const { doctor, schedule } = req.body;
-
-    // Validate input
-    if (!doctor || !schedule) {
-      return res.status(400).json({ message: "doctor and schedule are required." });
-    }
-
-    let existing = await DoctorWeeklySchedule.findOne({ doctor });
-
-    if (existing) {
-      existing.schedule = schedule;
-      await existing.save();
-      return res.status(200).json({ message: "Weekly schedule updated successfully.", data: existing });
-    } else {
-      const newSchedule = await DoctorWeeklySchedule.create({ doctor, schedule });
-      return res.status(201).json({ message: "Weekly schedule created successfully.", data: newSchedule });
-    }
+    const updatedSchedule = await DoctorWeeklySchedule.findOneAndUpdate(
+      { doctor: doctorId },
+      { schedule },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+    res.status(200).json({ message: 'Weekly schedule saved', schedule: updatedSchedule });
   } catch (err) {
-    console.error("setAvailability error:", err);
-    return res.status(500).json({ message: "Server error", error: err.message });
+    console.error(err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+// Get a doctor's weekly schedule
+export const getWeeklySchedule = async (req, res) => {
+  const doctorId = req.query.doctorId; // ✅ use query instead of params
+
+  if (!doctorId) return res.status(400).json({ message: 'doctorId is required' });
+
+  try {
+    const schedule = await DoctorWeeklySchedule.findOne({ doctor: doctorId })
+      .populate('doctor', 'name specialty');
+
+    if (!schedule) return res.status(404).json({ message: 'Schedule not found' });
+
+    res.status(200).json({ schedule });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
 
 
-// Assuming you use doctorId and date from req.query
-
-
-
-// Full week for doctor's editor/dashboard
-export const getFullWeeklyAvailability = async (req, res) => {
-  const { doctorId } = req.query;
-  if (!doctorId) {
-    return res.status(400).json({ message: 'doctorId is required.' });
-  }
+// Delete a doctor's weekly schedule
+export const deleteWeeklySchedule = async (req, res) => {
+  const { doctorId } = req.params;
 
   try {
-    const scheduleDoc = await DoctorWeeklySchedule.findOne({ doctor: doctorId });
-    if (!scheduleDoc) {
-      return res.status(404).json({ message: 'Doctor weekly schedule not found.' });
+    const deleted = await DoctorWeeklySchedule.findOneAndDelete({ doctor: doctorId });
+    if (!deleted) {
+      return res.status(404).json({ message: 'Schedule not found' });
     }
-    // Just send the whole .schedule obj
-    return res.status(200).json({ data: scheduleDoc.schedule });
+    res.status(200).json({ message: 'Schedule deleted' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 };

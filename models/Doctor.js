@@ -1,18 +1,19 @@
+// models/Doctor.js
 import mongoose from 'mongoose';
 
-const DoctorSchema = new mongoose.Schema({
+const doctorSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  specialty: { type: String, required: true },        // e.g., 'Cardiologist'
-  qualifications: [String],                           // e.g., ['MBBS', 'MD']
+  password: { type: String, required: true }, // Hash before save
+  specialty: { type: String, required: true },
+  qualifications: [String],
   bio: String,
   clinicAddress: String,
   status: {
     type: String,
     enum: ['available', 'busy', 'offline'],
     default: 'offline'
-  },                                                  // Enums for safety
+  },
   location: {
     type: {
       type: String,
@@ -26,7 +27,6 @@ const DoctorSchema = new mongoose.Schema({
       default: [0, 0],
       validate: {
         validator: function(value) {
-          // longitude: -180 to 180, latitude: -90 to 90
           return (
             Array.isArray(value) &&
             value.length === 2 &&
@@ -39,12 +39,14 @@ const DoctorSchema = new mongoose.Schema({
     }
   },
   phone: String,
-  experience: Number,                                 // Years of experience
-  fee: Number,                                        // Consultation fee
-  // Add any other relevant fields (profilePic, timings, reviews, etc.)
+  experience: Number,
+  fee: Number,
+  profilePic: String,
+  ratings: { type: Number, default: 0 },
+  reviews: [{ user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, rating: Number, comment: String }]
 }, { timestamps: true });
 
-// For efficient geo-queries (e.g., $near, $geoWithin)
-DoctorSchema.index({ location: "2dsphere" });
+// Geo-index for location-based search
+doctorSchema.index({ location: "2dsphere" });
 
-export const Doctor = mongoose.model('Doctor', DoctorSchema);
+export const Doctor = mongoose.model('Doctor', doctorSchema);

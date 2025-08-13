@@ -1,3 +1,4 @@
+// models/Appointment.js
 import mongoose from 'mongoose';
 
 const appointmentSchema = new mongoose.Schema({
@@ -8,4 +9,7 @@ const appointmentSchema = new mongoose.Schema({
   notes: String,
 }, { timestamps: true });
 
-export default mongoose.model('Appointment', appointmentSchema);
+// Prevent double-booking: one doctor cannot have two appointments at the same time
+appointmentSchema.index({ doctor: 1, scheduledFor: 1 }, { unique: true });
+
+export const Appointment = mongoose.model('Appointment', appointmentSchema);
